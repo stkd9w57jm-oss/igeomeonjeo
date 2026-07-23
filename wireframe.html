@@ -1,0 +1,572 @@
+<title>이거먼저 — 와이어프레임 v1</title>
+<style>
+  :root {
+    --paper: #f7f8f5;
+    --ink: #21261f;
+    --ink-soft: #5c635a;
+    --line: #c8ccc3;
+    --line-soft: #dfe2da;
+    --fill: #ecefe8;
+    --fill-deep: #dde1d6;
+    --card: #ffffff;
+    --accent: #2f7a4d;
+    --accent-ink: #ffffff;
+    --urgent: #c04a2f;
+    --urgent-soft: #f4ddd5;
+    --warn: #a5762a;
+    --warn-soft: #f0e6cf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #191c17;
+      --ink: #e8ebe4;
+      --ink-soft: #9aa295;
+      --line: #454b41;
+      --line-soft: #33382f;
+      --fill: #242822;
+      --fill-deep: #2d322a;
+      --card: #20241e;
+      --accent: #5cb37f;
+      --accent-ink: #10140e;
+      --urgent: #e0704f;
+      --urgent-soft: #46281f;
+      --warn: #cfa14e;
+      --warn-soft: #3d3220;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f7f8f5; --ink: #21261f; --ink-soft: #5c635a; --line: #c8ccc3;
+    --line-soft: #dfe2da; --fill: #ecefe8; --fill-deep: #dde1d6; --card: #ffffff;
+    --accent: #2f7a4d; --accent-ink: #ffffff; --urgent: #c04a2f; --urgent-soft: #f4ddd5;
+    --warn: #a5762a; --warn-soft: #f0e6cf;
+  }
+  :root[data-theme="dark"] {
+    --paper: #191c17; --ink: #e8ebe4; --ink-soft: #9aa295; --line: #454b41;
+    --line-soft: #33382f; --fill: #242822; --fill-deep: #2d322a; --card: #20241e;
+    --accent: #5cb37f; --accent-ink: #10140e; --urgent: #e0704f; --urgent-soft: #46281f;
+    --warn: #cfa14e; --warn-soft: #3d3220;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.55;
+    margin: 0;
+    padding: 48px 24px 80px;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin: 0 0 10px;
+  }
+  h1 { font-size: 34px; line-height: 1.2; margin: 0 0 6px; text-wrap: balance; }
+  .tagline { color: var(--ink-soft); font-size: 16px; margin: 0 0 28px; }
+
+  .loops {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+  }
+  .loop {
+    flex: 1 1 300px; border: 1px solid var(--line-soft); background: var(--card);
+    border-radius: 10px; padding: 14px 18px; font-size: 13.5px;
+  }
+  .loop b { display: block; margin-bottom: 4px; font-size: 13px; }
+  .loop b em { font-style: normal; color: var(--ink-soft); font-weight: 500; }
+  .loop span { color: var(--ink-soft); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+    font-size: 12.5px; color: var(--ink-soft); margin-bottom: 44px;
+  }
+  .legend .chip-d { font-size: 11px; }
+
+  /* ---------- screen sections ---------- */
+  .screen-grid { display: flex; flex-direction: column; gap: 56px; }
+  .screen {
+    display: flex; gap: 36px; align-items: flex-start; flex-wrap: wrap;
+  }
+  .screen-info { flex: 1 1 320px; min-width: 280px; max-width: 460px; }
+  .screen-no {
+    font-size: 12px; letter-spacing: .12em; color: var(--ink-soft);
+    text-transform: uppercase; margin: 0 0 4px;
+  }
+  .screen-info h2 { font-size: 21px; margin: 0 0 8px; }
+  .screen-info .role {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 999px; padding: 2px 10px; margin-bottom: 12px;
+  }
+  .screen-info p.desc { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 16px; }
+  .notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .notes li { display: flex; gap: 10px; font-size: 13.5px; }
+  .notes li span.txt { flex: 1; }
+
+  .marker {
+    flex: none; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    font-size: 12px; font-weight: 700; display: inline-flex;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .marker.inframe { width: 17px; height: 17px; font-size: 10.5px; box-shadow: 0 0 0 2px var(--card); }
+
+  /* ---------- phone frame ---------- */
+  .phone {
+    flex: none; width: 316px; border: 2px solid var(--ink);
+    border-radius: 26px; background: var(--card); overflow: hidden;
+    box-shadow: 6px 6px 0 var(--fill-deep);
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; padding: 8px 18px 4px;
+    font-size: 10px; color: var(--ink-soft);
+  }
+  .app {
+    padding: 8px 14px 0; display: flex; flex-direction: column; gap: 10px;
+    min-height: 520px; font-size: 13px;
+  }
+  .appbar { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 2px 0; }
+  .appbar .logo { font-weight: 800; font-size: 16px; }
+  .appbar .sub { font-size: 11px; color: var(--ink-soft); }
+
+  .h-section { font-size: 15px; font-weight: 700; margin: 2px 2px 0; }
+  .h-section small { font-weight: 500; color: var(--ink-soft); }
+
+  .card {
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px; background: var(--card);
+    position: relative;
+  }
+  .card.urgent { border-color: var(--urgent); }
+  .card .row1 { display: flex; align-items: center; gap: 8px; }
+  .card .name { font-weight: 700; font-size: 14.5px; }
+  .card .where { font-size: 11px; color: var(--ink-soft); background: var(--fill); border-radius: 6px; padding: 2px 7px; }
+
+  .chip-d {
+    font-size: 11px; font-weight: 700; border-radius: 6px; padding: 2px 7px;
+    margin-left: auto; font-variant-numeric: tabular-nums;
+  }
+  .d-urgent { background: var(--urgent-soft); color: var(--urgent); }
+  .d-warn { background: var(--warn-soft); color: var(--warn); }
+  .d-ok { background: var(--fill); color: var(--ink-soft); }
+  .d-over { background: var(--urgent); color: #fff; }
+
+  .meta { font-size: 11.5px; color: var(--ink-soft); }
+  .tag-sale {
+    font-size: 10px; font-weight: 700; color: var(--warn);
+    border: 1px solid var(--warn); border-radius: 5px; padding: 1px 5px;
+  }
+
+  .actions { display: flex; gap: 6px; }
+  .btn {
+    flex: 1; text-align: center; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 2px;
+    background: var(--fill);
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.danger-line { border-color: var(--urgent); color: var(--urgent); background: var(--card); }
+  .btn.wide { flex: none; width: 100%; box-sizing: border-box; }
+
+  .quiet { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 4px 0 2px; }
+
+  .navbar {
+    margin-top: auto; border-top: 1px solid var(--line-soft);
+    display: flex; padding: 9px 4px 14px; font-size: 10.5px; color: var(--ink-soft);
+  }
+  .navbar div { flex: 1; text-align: center; }
+  .navbar .on { color: var(--accent); font-weight: 800; }
+  .navbar .add {
+    flex: none; width: 34px; height: 34px; margin: -6px 6px 0; border-radius: 50%;
+    background: var(--ink); color: var(--paper); font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* fridge map */
+  .zone {
+    border: 1px dashed var(--line); border-radius: 10px; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .zone.freezer { background: repeating-linear-gradient(45deg, var(--fill), var(--fill) 6px, var(--card) 6px, var(--card) 12px); }
+  .zone .zhead { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+  .zone .zhead .cnt { color: var(--ink-soft); font-weight: 500; }
+  .zone .zhead .alert {
+    margin-left: auto; font-size: 10px; font-weight: 800; color: #fff;
+    background: var(--urgent); border-radius: 999px; padding: 1px 7px;
+  }
+  .items { display: flex; flex-wrap: wrap; gap: 5px; }
+  .item {
+    font-size: 11.5px; background: var(--fill); border-radius: 7px; padding: 3px 8px;
+    display: inline-flex; gap: 5px; align-items: center;
+  }
+  .item .d { font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .item .d.u { color: var(--urgent); }
+  .item .d.w { color: var(--warn); }
+
+  /* list rows (구획 상세) */
+  .lrow {
+    border: 1px solid var(--line-soft); border-radius: 10px; padding: 9px 11px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .lrow .top { display: flex; align-items: center; gap: 8px; }
+  .lrow .nm { font-weight: 700; font-size: 13.5px; }
+  .lrow .bought { font-size: 11px; color: var(--ink-soft); }
+  .gauge { height: 5px; border-radius: 3px; background: var(--fill); overflow: hidden; }
+  .gauge i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .gauge i.u { background: var(--urgent); }
+  .gauge i.w { background: var(--warn); }
+  .swipe-hint {
+    font-size: 10.5px; color: var(--ink-soft); text-align: right;
+  }
+
+  /* form (등록) */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+  .field label .opt { font-weight: 500; }
+  .input {
+    border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px;
+    font-size: 13.5px; background: var(--card); display: flex; align-items: center; gap: 6px;
+  }
+  .input.placeholder { color: var(--ink-soft); }
+  .suggest {
+    border: 1px solid var(--accent); background: var(--fill); border-radius: 9px;
+    padding: 8px 11px; font-size: 12.5px; display: flex; justify-content: space-between; gap: 8px; align-items: center;
+  }
+  .suggest small { color: var(--ink-soft); }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg .s {
+    border: 1px solid var(--line); border-radius: 8px; text-align: center;
+    padding: 8px 2px; font-size: 12px; background: var(--card);
+  }
+  .seg .s.on { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 700; }
+  .inline-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 12.5px;
+  }
+  .textarea {
+    border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; font-size: 11.5px;
+    color: var(--ink-soft); background: var(--fill); min-height: 74px; line-height: 1.5;
+    font-family: ui-monospace, "Consolas", monospace;
+  }
+  .checkrow { display: flex; align-items: center; gap: 9px; font-size: 13px; border-bottom: 1px solid var(--line-soft); padding: 7px 2px; }
+  .checkrow:last-of-type { border-bottom: 0; }
+  .box { flex: none; width: 15px; height: 15px; border: 1.5px solid var(--ink); border-radius: 4px; }
+  .box.on { background: var(--accent); border-color: var(--accent); }
+  .checkrow .sub { margin-left: auto; font-size: 11px; color: var(--ink-soft); text-align: right; }
+  .checkrow.off { color: var(--ink-soft); }
+  .checkrow.off .box { border-color: var(--line); }
+
+  /* bottom sheet */
+  .dim { background: var(--fill-deep); flex: 1; border-radius: 10px; opacity: .55; min-height: 120px; }
+  .sheet {
+    border: 1.5px solid var(--ink); border-bottom: 0; border-radius: 18px 18px 0 0;
+    padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 10px;
+    margin: 0 -14px; background: var(--card);
+  }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+  .foot {
+    margin-top: 60px; border-top: 1px solid var(--line-soft); padding-top: 18px;
+    font-size: 13px; color: var(--ink-soft); max-width: 640px;
+  }
+  .foot b { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    body { padding: 32px 14px 60px; }
+    .screen { gap: 20px; }
+    .phone { width: 100%; max-width: 340px; }
+  }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Wireframe v1 · 2026-07-23</p>
+  <h1>이거먼저 — 웹앱 와이어프레임</h1>
+  <p class="tagline">냉장고 속, 오늘 먼저 챙길 재료 · 기획안 「이번 웹앱 구현 범위」 5개 항목 기준</p>
+
+  <div class="loops">
+    <div class="loop"><b>확인 루프 <em>· 매일 30초</em></b><span>S1 오늘 먼저 → S6 상태 변경. 하루 1회, 이 화면만 보면 된다.</span></div>
+    <div class="loop"><b>탐색 <em>· 필요할 때</em></b><span>S2 냉장고 지도 → S3 구획 상세. "어디 있지?"에 답한다.</span></div>
+    <div class="loop"><b>입고 루프 <em>· 주 1~2회</em></b><span>S4 3초 등록 · S5 영수증 일괄 등록. 장 본 날만 쓴다.</span></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="marker" style="display:inline-flex">1</span>&nbsp; 설계 의도 주석 (화면 속 번호와 대응)</span>
+    <span class="chip-d d-urgent">D-1</span><span style="margin-left:-10px">임박(빨강)</span>
+    <span class="chip-d d-warn">D-3</span><span style="margin-left:-10px">주의(노랑)</span>
+    <span class="chip-d d-over">+2일 지남</span><span style="margin-left:-10px">기간 초과</span>
+  </div>
+
+  <div class="screen-grid">
+
+    <!-- S1 홈: 오늘 먼저 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="appbar"><span class="logo">이거먼저</span><span class="sub">7월 23일 수요일</span></div>
+          <div class="h-section">오늘 먼저 챙길 재료 <small>3</small> <span class="marker inframe" style="display:inline-flex">1</span></div>
+
+          <div class="card urgent">
+            <div class="row1"><span class="name">애호박</span><span class="where">야채칸</span><span class="chip-d d-urgent">D-1</span></div>
+            <div class="meta">7월 17일 구매 · 권장 냉장 7일</div>
+            <div class="actions"><div class="btn primary">오늘 먹기</div><div class="btn">냉동하기</div><div class="btn">손질하기</div></div>
+            <span class="marker inframe" style="position:absolute; right:-8px; top:38px;">2</span>
+          </div>
+
+          <div class="card">
+            <div class="row1"><span class="name">두부</span><span class="where">냉장 2칸</span><span class="tag-sale">마감할인</span><span class="chip-d d-warn">D-2</span></div>
+            <div class="meta">7월 21일 구매 · 소비기한 7월 25일 (직접 입력)</div>
+            <div class="actions"><div class="btn primary">오늘 먹기</div><div class="btn">냉동하기</div></div>
+          </div>
+
+          <div class="card">
+            <div class="row1"><span class="name">대파</span><span class="where">야채칸</span><span class="chip-d d-over">+2일 지남</span></div>
+            <div class="meta">7월 9일 구매 · 권장 기간 초과</div>
+            <div class="actions"><div class="btn danger-line wide">버리기 전 상태 확인</div></div>
+            <span class="marker inframe" style="position:absolute; right:-8px; top:60px;">3</span>
+          </div>
+
+          <div class="quiet">나머지 12개 재료는 아직 여유 있어요 <span class="marker inframe" style="display:inline-flex">4</span></div>
+
+          <div class="navbar"><div class="on">오늘</div><div>지도</div><div class="add">＋</div><div>알뜰</div><div>설정</div></div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S1 · 홈</p>
+        <h2>오늘 먼저</h2>
+        <span class="role">확인 루프 — 하루 1회, 30초</span>
+        <p class="desc">앱을 열면 항상 이 화면. 전체 재고가 아니라 "오늘 행동이 필요한 것"만 보여준다.</p>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">카드는 최대 3장. 그 이상 임박해도 잘라서 보여준다 — 할 일 목록이 길어지는 순간 관리 압박이 되고 이탈이 시작된다.</span></li>
+          <li><span class="marker">2</span><span class="txt">D-day 경고가 아니라 행동 버튼이 주인공. 버튼을 누르면 그 자리에서 상태가 바뀌고 카드가 사라진다 (차별점 3: 알림이 아니라 행동 제안).</span></li>
+          <li><span class="marker">3</span><span class="txt">'버리기 전 상태 확인'은 권장 기간을 넘긴 재료에만 등장하는 예외 액션. 평상시엔 노출되지 않는다.</span></li>
+          <li><span class="marker">4</span><span class="txt">여유 있는 재고는 숫자 한 줄로만. 눌러야 전체 목록이 열린다.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S2 냉장고 지도 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="appbar"><span class="logo">냉장고 지도</span><span class="sub">구획 편집 ✎ <span class="marker inframe" style="display:inline-flex">1</span></span></div>
+
+          <div class="zone freezer">
+            <div class="zhead">냉동칸 <span class="cnt">· 3</span></div>
+            <div class="items"><span class="item">다진마늘</span><span class="item">식빵 ½</span><span class="item">국거리</span></div>
+          </div>
+          <div class="zone">
+            <div class="zhead">냉장 1칸 <span class="cnt">· 2</span></div>
+            <div class="items"><span class="item">계란</span><span class="item">김치</span></div>
+          </div>
+          <div class="zone">
+            <div class="zhead">냉장 2칸 <span class="cnt">· 3</span><span class="alert">1 <span style="font-weight:500">임박</span></span></div>
+            <div class="items"><span class="item">두부 <span class="d w">D-2</span></span><span class="item">어묵</span><span class="item">반찬통</span></div>
+            <span class="marker inframe" style="align-self:flex-end; margin-top:-24px;">2</span>
+          </div>
+          <div class="zone">
+            <div class="zhead">문칸 <span class="cnt">· 4</span></div>
+            <div class="items"><span class="item">우유 <span class="d">D-4</span></span><span class="item">쌈장</span><span class="item">케첩</span><span class="item">맛술</span></div>
+          </div>
+          <div class="zone">
+            <div class="zhead">야채칸 <span class="cnt">· 4</span><span class="alert">2 <span style="font-weight:500">임박</span></span></div>
+            <div class="items"><span class="item">애호박 <span class="d u">D-1</span></span><span class="item">대파 <span class="d u">+2</span></span><span class="item">양파</span><span class="item">당근</span></div>
+            <span class="marker inframe" style="align-self:flex-end; margin-top:-24px;">3</span>
+          </div>
+
+          <div class="navbar"><div>오늘</div><div class="on">지도</div><div class="add">＋</div><div>알뜰</div><div>설정</div></div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S2 · 지도</p>
+        <h2>냉장고 지도</h2>
+        <span class="role">탐색 — "어디 있지?"의 답</span>
+        <p class="desc">텍스트 목록이 아니라 실물 냉장고와 같은 구조. 화면 위→아래 = 냉장고 위→아래.</p>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">구획은 제네릭 템플릿(냉동·냉장 칸 수·문칸·야채칸)을 3탭 안에 커스터마이즈. 냉장고 모델 DB는 P2.</span></li>
+          <li><span class="marker">2</span><span class="txt">임박 재료가 있는 구획은 배지로 표면화 — 지도만 훑어도 "어느 칸을 열어야 하는지" 보인다.</span></li>
+          <li><span class="marker">3</span><span class="txt">구획 탭 → S3 구획 상세. 재료 칩 탭 → S6 상태 시트로 바로 간다.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S3 구획 상세 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="appbar"><span class="logo">‹ 야채칸</span><span class="sub">4개 · 임박 2</span></div>
+
+          <div class="lrow">
+            <div class="top"><span class="nm">애호박</span><span class="bought">7/17 구매</span><span class="chip-d d-urgent">D-1</span></div>
+            <div class="gauge"><i class="u" style="width:88%"></i></div>
+            <div class="swipe-hint">← 밀어서 일부 사용 · 소비 완료 <span class="marker inframe" style="display:inline-flex">2</span></div>
+          </div>
+          <div class="lrow">
+            <div class="top"><span class="nm">대파</span><span class="bought">7/9 구매</span><span class="chip-d d-over">+2일</span></div>
+            <div class="gauge"><i class="u" style="width:100%"></i></div>
+          </div>
+          <div class="lrow">
+            <div class="top"><span class="nm">양파</span><span class="bought">7/14 구매</span><span class="chip-d d-ok">D-12</span></div>
+            <div class="gauge"><i style="width:35%"></i></div>
+            <span class="marker inframe" style="align-self:flex-end; margin-top:-20px;">1</span>
+          </div>
+          <div class="lrow">
+            <div class="top"><span class="nm">당근</span><span class="bought">7/21 구매</span><span class="chip-d d-ok">D-19</span></div>
+            <div class="gauge"><i style="width:12%"></i></div>
+          </div>
+
+          <div class="quiet" style="margin-top:2px">게이지 = 구매일부터 권장 보관기간까지의 경과 <span class="marker inframe" style="display:inline-flex">3</span></div>
+
+          <div class="navbar"><div>오늘</div><div class="on">지도</div><div class="add">＋</div><div>알뜰</div><div>설정</div></div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S3 · 구획 상세</p>
+        <h2>야채칸</h2>
+        <span class="role">탐색 — 구획 안 훑어보기</span>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">모든 행이 같은 구조: 이름 · 구매일 · 남은 기간. 수량 열이 없다 — 존재와 상태만 관리한다.</span></li>
+          <li><span class="marker">2</span><span class="txt">스와이프로 '일부 사용'·'소비 완료' 즉시 처리. 상세 화면 없이 목록에서 끝낸다.</span></li>
+          <li><span class="marker">3</span><span class="txt">게이지는 구매일 + 식약처 소비기한 참고치 기반 기본값으로 계산. 사용자가 소비기한을 직접 넣은 재료(두부 등)는 그 값을 우선한다.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S4 등록 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="appbar"><span class="logo">재료 추가</span><span class="sub">✕</span></div>
+
+          <div class="field">
+            <label>이름</label>
+            <div class="input">애호박<span style="opacity:.4">|</span></div>
+            <div class="suggest"><span>🥒 애호박</span><small>권장 냉장 7일 · 자동 적용</small><span class="marker inframe">2</span></div>
+          </div>
+
+          <div class="field">
+            <label>어느 칸에 넣었나요?</label>
+            <div class="seg">
+              <div class="s">냉동칸</div><div class="s">냉장 1칸</div><div class="s">냉장 2칸</div>
+              <div class="s">문칸</div><div class="s on">야채칸</div><div class="s">기타</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>구매일 <span class="opt">· 바꿀 일 거의 없음</span></label>
+            <div><span class="inline-chip">오늘 · 7월 23일 ▾</span> <span class="marker inframe" style="display:inline-flex">1</span></div>
+          </div>
+
+          <div class="field">
+            <label>소비기한 직접 입력 <span class="opt">(선택 — 포장에 적혀 있을 때만)</span> ▸ <span class="marker inframe" style="display:inline-flex">3</span></label>
+          </div>
+
+          <div class="btn primary wide" style="font-size:14px; padding:12px 0;">등록하기</div>
+          <div class="quiet">장 본 게 많다면 → <b>영수증으로 한 번에</b></div>
+
+          <div class="navbar"><div>오늘</div><div>지도</div><div class="add" style="background:var(--accent); color:var(--accent-ink)">＋</div><div>알뜰</div><div>설정</div></div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S4 · 등록</p>
+        <h2>3초 등록</h2>
+        <span class="role">입고 루프 — 핵심 가설의 화면</span>
+        <p class="desc">필수 입력은 이름과 칸, 단 두 개. 날짜는 하나도 입력하지 않아도 등록이 끝난다.</p>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">구매일 기본값은 오늘. 며칠 지나 등록하는 경우만 칩을 눌러 바꾼다.</span></li>
+          <li><span class="marker">2</span><span class="txt">이름 자동완성이 품목을 인식하면 식약처 소비기한 참고치 기반 보관기간이 자동 적용된다 — 사용자에게 '자동 적용'을 보여줘 신뢰를 만든다.</span></li>
+          <li><span class="marker">3</span><span class="txt">소비기한 직접 입력은 접힌 선택 항목. 펼치지 않으면 존재감이 없다 — 입력 부담의 원흉을 기본 화면에서 제거.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S5 영수증 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="appbar"><span class="logo">영수증으로 한 번에</span><span class="sub">✕</span></div>
+
+          <div class="field">
+            <label>전자영수증 내용 붙여넣기 <span class="marker inframe" style="display:inline-flex">1</span></label>
+            <div class="textarea">GS25 마감할인<br>두부 300g ..... 1,050<br>애호박 ....... 890<br>신라면 5입 ... 3,980<br>봉투 ......... 100</div>
+          </div>
+
+          <div class="field">
+            <label>냉장고에 들어갈 재료 2개를 찾았어요</label>
+            <div>
+              <div class="checkrow"><span class="box on"></span>두부 <span class="tag-sale">마감할인</span><span class="sub">냉장 · 참고치 D-5</span></div>
+              <div class="checkrow"><span class="box on"></span>애호박<span class="sub">냉장 · 참고치 D-7</span></div>
+              <div class="checkrow off"><span class="box"></span>신라면 5입<span class="sub">실온 보관 — 제외됨 <span class="marker inframe" style="display:inline-flex">2</span></span></div>
+              <div class="checkrow off"><span class="box"></span>봉투<span class="sub">식재료 아님 — 제외됨</span></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>넣을 칸 한 번에 지정</label>
+            <div><span class="inline-chip">냉장 2칸 ▾</span> <span style="font-size:11px; color:var(--ink-soft)">개별 변경 가능</span></div>
+          </div>
+
+          <div class="btn primary wide" style="font-size:14px; padding:12px 0;">2개 재료 등록 <span class="marker inframe">3</span></div>
+
+          <div class="navbar"><div>오늘</div><div>지도</div><div class="add" style="background:var(--accent); color:var(--accent-ink)">＋</div><div>알뜰</div><div>설정</div></div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S5 · 영수증 등록</p>
+        <h2>영수증으로 한 번에</h2>
+        <span class="role">입고 루프 — 장 본 날 일괄 입고</span>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">붙여넣기 방식이라 제휴·API 없이 MVP에서 구현 가능. 이메일 영수증·바코드 연동은 확장 단계.</span></li>
+          <li><span class="marker">2</span><span class="txt">실온 보관 품목과 비식재료는 기본 체크 해제로 제안 — 인식 실패를 숨기지 않고 사용자가 한눈에 교정하게 한다. 기한은 전부 참고치 기반 추정임을 명시.</span></li>
+          <li><span class="marker">3</span><span class="txt">마감할인 영수증이면 '마감할인' 태그가 자동으로 붙어 S1에서 우선 정렬된다 (P1: 할인 구매 태그).</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S6 상태 시트 -->
+    <section class="screen">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+        <div class="app">
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="row1" style="display:flex; align-items:center; gap:8px;">
+              <span class="name" style="font-size:16px; font-weight:800;">애호박</span>
+              <span class="where">야채칸</span><span class="chip-d d-urgent">D-1</span>
+            </div>
+            <div class="meta">7월 17일 구매 · 권장 냉장 7일 (식약처 참고치)</div>
+            <div class="meta" style="background:var(--fill); border-radius:8px; padding:7px 10px;">💡 손질해서 냉동하면 약 1개월 보관할 수 있어요 <span class="marker inframe" style="display:inline-flex">2</span></div>
+            <div class="grid2">
+              <div class="btn">일부 사용 <span class="marker inframe">1</span></div>
+              <div class="btn primary">소비 완료</div>
+              <div class="btn">냉동으로 이동</div>
+              <div class="btn danger-line">폐기</div>
+            </div>
+            <div class="quiet" style="text-align:left; padding:0;">폐기를 누르면 이유를 한 번만 묻는다 (상함 · 너무 많음 · 기타) <span class="marker inframe" style="display:inline-flex">3</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">
+        <p class="screen-no">S6 · 상태 시트</p>
+        <h2>재료 상태 변경</h2>
+        <span class="role">확인 루프의 종점 — 처리 기록</span>
+        <p class="desc">어느 화면에서든 재료를 탭하면 열리는 바텀 시트. 상태 모델(보유 → 일부 사용 → 완료·냉동·폐기)이 버튼 그대로다.</p>
+        <ul class="notes">
+          <li><span class="marker">1</span><span class="txt">'일부 사용'은 수량 입력 없는 단일 버튼. 누르면 사용 이력만 갱신되고 항목은 유지된다 — MVP 상태 모델 그대로.</span></li>
+          <li><span class="marker">2</span><span class="txt">행동 제안 문구는 재료 특성(냉동 가능 여부)에 따라 달라진다. 광고·제휴와 분리된 영역.</span></li>
+          <li><span class="marker">3</span><span class="txt">폐기도 떳떳한 버튼으로 둔다. 폐기 사유가 쌓여야 성공 지표(폐기 전 처리 비율)와 개선 근거가 된다.</span></li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="foot">
+    <b>구현 범위 매핑</b> — S1: 임박 우선 표시·처리 행동 / S2·S3: 냉장고 지도·위치별 확인·남은 기간 계산 / S4: 3초 등록 / S5: 전자영수증 등록 / S6: 상태 변경.
+    '알뜰' 탭은 P2(제휴 연동)까지 자리만 잡아두는 선택 진입점으로, 이번 구현에서는 빈 안내 화면이다.
+  </div>
+</div>
