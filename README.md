@@ -4,6 +4,10 @@
 
 냉장고 속 식재료를 **위치와 시간** 기준으로 보여주고, 마감 임박 식재료가 버려지기 전에 **'오늘 할 행동 하나'**를 제안하는 개인 냉장고 관리 서비스입니다. 서비스 기획부터 구현까지 전 과정을 연습하는 미니 프로젝트로, 기획안 → 와이어프레임 → 웹 데모 순서로 만들었습니다.
 
+**▶ 라이브 데모: https://stkd9w57jm-oss.github.io/igeomeonjeo/**
+
+UI는 [Whole Foods Market UK](https://www.wholefoodsmarket.co.uk/)의 비주얼 스타일(딥 그린 `#004E36` · 화이트 · 웜 블랙 · 각진 모서리)을 따랐습니다.
+
 ## 프로젝트 구성
 
 | 파일 | 내용 |
@@ -11,6 +15,7 @@
 | [기획안.md](기획안.md) | 문제 정의 · 차별점 · BM · MVP 우선순위 · 성공 지표 · 기대효과 |
 | [wireframe.html](wireframe.html) | 6개 화면 와이어프레임 + 설계 의도 주석 |
 | [index.html](index.html) / [style.css](style.css) / [app.js](app.js) | 웹 데모 (빌드 없는 바닐라 JS) |
+| [docs/이거먼저-발표.pptx](docs/이거먼저-발표.pptx) / [docs/발표스크립트.md](docs/발표스크립트.md) | 5분 발표 자료와 스크립트 |
 
 ## 데모 실행
 
