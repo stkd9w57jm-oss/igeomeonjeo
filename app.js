@@ -3,7 +3,7 @@
 
 /* ---------- 상수 ---------- */
 const ZONES = ["냉동칸", "냉장 1칸", "냉장 2칸", "문칸", "야채칸", "기타"];
-const STORAGE_KEY = "igeomeonjeo-v1";
+const STORAGE_KEY = "igeomeonjeo-v2";
 const FROZEN_DAYS = 30; // 냉동 이동 시 부여하는 권장 기간
 
 /* 품목별 권장 냉장 보관기간 기본값(일).
@@ -130,8 +130,8 @@ function seedItems() {
     { id: uid(), name: "계란", zone: "냉장 1칸", bought: daysAgo(10), shelfDays: 30, expiry: null, sale: false },
     { id: uid(), name: "김치", zone: "냉장 1칸", bought: daysAgo(30), shelfDays: 90, expiry: null, sale: false },
     { id: uid(), name: "어묵", zone: "냉장 2칸", bought: daysAgo(1), shelfDays: 7, expiry: null, sale: false },
-    { id: uid(), name: "우유", zone: "문칸", bought: daysAgo(3), shelfDays: 7, expiry: null, sale: false },
-    { id: uid(), name: "쌈장", zone: "문칸", bought: daysAgo(40), shelfDays: 180, expiry: null, sale: false },
+    { id: uid(), name: "우유", zone: "냉장 1칸", bought: daysAgo(3), shelfDays: 7, expiry: null, sale: false },
+    { id: uid(), name: "쌈장", zone: "냉장 2칸", bought: daysAgo(40), shelfDays: 180, expiry: null, sale: false },
     { id: uid(), name: "케첩", zone: "문칸", bought: daysAgo(60), shelfDays: 90, expiry: null, sale: false },
     { id: uid(), name: "다진마늘", zone: "냉동칸", bought: daysAgo(5), shelfDays: 14, expiry: addDays(fmt(today()), 25), frozen: true, sale: false },
     { id: uid(), name: "식빵 ½", zone: "냉동칸", bought: daysAgo(4), shelfDays: 5, expiry: addDays(fmt(today()), 26), frozen: true, sale: false },
