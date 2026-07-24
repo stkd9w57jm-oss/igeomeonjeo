@@ -341,15 +341,15 @@ body {
   margin-bottom: 18px;
 }
 .rules-title {
-  font-family: ui-monospace, "Consolas", "SFMono-Regular", monospace;
+  font-family: "Nanum Gothic Coding", ui-monospace, "Consolas", monospace;
   font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--accent-deep); margin-bottom: 9px;
 }
 .rules ol {
   margin: 0; padding: 0; list-style: none;
   counter-reset: rule;
-  font-family: ui-monospace, "Consolas", "SFMono-Regular", monospace;
-  font-size: 12px; line-height: 1.7; color: var(--ink-mid);
+  font-family: "Nanum Gothic Coding", ui-monospace, "Consolas", monospace;
+  font-size: 12.5px; line-height: 1.75; color: var(--ink-mid);
 }
 .rules li {
   counter-increment: rule;

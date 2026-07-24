@@ -59,6 +59,29 @@ const FOOD_DB = [
 ];
 const DEFAULT_DAYS = 7;
 
+/* 품목별 자연스러운 보관 칸 추천. 가장 긴 키워드 일치를 우선. */
+const ZONE_HINTS = [
+  { z: "야채칸", k: ["애호박", "호박", "대파", "쪽파", "양파", "당근", "감자", "고구마", "상추",
+    "깻잎", "쌈채소", "시금치", "나물", "버섯", "오이", "토마토", "방울토마토", "브로콜리",
+    "파프리카", "피망", "고추", "마늘", "딸기", "포도", "사과", "배추", "무", "레몬", "아보카도", "셀러리"] },
+  { z: "냉장 1칸", k: ["계란", "달걀", "우유", "요거트", "요구르트", "치즈", "버터", "김치", "생크림"] },
+  { z: "냉장 2칸", k: ["두부", "콩나물", "숙주", "어묵", "햄", "베이컨", "소시지", "반찬", "만두",
+    "떡", "도시락", "샌드위치", "김밥", "삼각김밥", "주먹밥", "샐러드", "돼지고기", "삼겹살", "목살",
+    "소고기", "쇠고기", "국거리", "닭고기", "닭가슴살", "생선", "고등어", "갈치", "연어",
+    "쌈장", "된장", "고추장", "잼"] },
+  { z: "문칸", k: ["케첩", "마요", "소스", "맛술", "간장", "식초", "드레싱", "주스", "생수", "음료"] },
+];
+function guessZone(name) {
+  const n = name.replace(/\s/g, "");
+  let best = null;
+  for (const h of ZONE_HINTS) {
+    for (const kw of h.k) {
+      if (n.includes(kw) && (!best || kw.length > best.kw.length)) best = { kw, z: h.z };
+    }
+  }
+  return best ? best.z : null;
+}
+
 /* 영수증 인식에서 기본 제외되는 품목 */
 const ROOM_TEMP = ["라면", "컵라면", "과자", "스낵", "초콜릿", "사탕", "젤리", "음료", "콜라", "사이다",
   "생수", "커피", "소주", "맥주", "와인", "통조림", "즉석밥", "햇반", "시리얼", "꿀",
@@ -440,14 +463,24 @@ function bindAddForm(form) {
   const nameEl = form.querySelector("#f-name");
   const sugEl = form.querySelector("#f-suggest");
   let zone = "야채칸";
+  let zoneTouched = false; // 사용자가 칸을 직접 고르면 자동 추천을 멈춤
+  const selectZone = (z) => {
+    zone = z;
+    form.querySelectorAll("#f-zone .s").forEach((x) => x.classList.toggle("on", x.dataset.z === z));
+  };
   nameEl.addEventListener("input", () => {
+    const v = nameEl.value.trim();
     const g = guessFood(nameEl.value);
-    sugEl.innerHTML = nameEl.value.trim()
-      ? '<div class="suggest"><span>' + esc(nameEl.value.trim()) + "</span><small>권장 냉장 " + (g ? g.d : DEFAULT_DAYS) + "일 · 자동 적용" + (g ? "" : " (기본값)") + "</small></div>"
+    const gz = guessZone(nameEl.value);
+    if (v && gz && !zoneTouched) selectZone(gz); // 칸 자동 추천
+    const zoneNote = (v && gz && !zoneTouched) ? " · " + esc(gz) + " 추천" : "";
+    sugEl.innerHTML = v
+      ? '<div class="suggest"><span>' + esc(v) + "</span><small>권장 냉장 " + (g ? g.d : DEFAULT_DAYS) + "일 · 자동 적용" + zoneNote + "</small></div>"
       : "";
   });
   form.querySelectorAll("#f-zone .s").forEach((b) => {
     b.addEventListener("click", () => {
+      zoneTouched = true;
       form.querySelectorAll("#f-zone .s").forEach((x) => x.classList.remove("on"));
       b.classList.add("on");
       zone = b.dataset.z;
