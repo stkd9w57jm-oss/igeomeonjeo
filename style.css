@@ -23,6 +23,8 @@
   --urgent-soft: #ffe4db;
   --warn: #c98a06;
   --warn-soft: #fff0c9;
+  --frost: #3d9dd6;           /* 냉동실 하늘색 */
+  --frost-soft: #dbeef9;
   --shadow-s: 0 2px 8px rgba(23, 37, 28, .05);
   --shadow-m: 0 10px 26px rgba(23, 37, 28, .12);
   --r-btn: 12px;
@@ -53,6 +55,8 @@
     --urgent-soft: #3d211a;
     --warn: #e6ac3c;
     --warn-soft: #362b12;
+    --frost: #6fc0ea;
+    --frost-soft: #17303d;
     --shadow-s: 0 2px 8px rgba(0, 0, 0, .4);
     --shadow-m: 0 10px 26px rgba(0, 0, 0, .55);
   }
@@ -256,14 +260,18 @@ body {
   border-radius: var(--r-pill);
   background: var(--fill-deep);
 }
-/* 냉장실 / 냉동실 묶음 */
-.fridge-main { display: flex; flex-direction: column; gap: 9px; }
+/* 냉장실 / 냉동실 묶음 — 가로 나란히 배치 가능(반칸) */
+.fridge-main { display: flex; flex-flow: row wrap; gap: 9px; }
 .fridge-freezer {
-  display: flex; flex-direction: column; gap: 9px;
+  display: flex; flex-flow: row wrap; gap: 9px;
   margin-top: 12px; padding-top: 13px;
-  border-top: 3px dashed var(--fill-deep);   /* 냉동실 도어 경계 */
+  border-top: 2px dashed var(--frost);   /* 냉동실 도어 경계 */
 }
-.compartment { display: flex; align-items: center; }
+.compartment { flex: 0 0 100%; display: flex; align-items: center; }
+.fridge-main > .none, .fridge-freezer > .none { flex: 0 0 100%; }
+/* 칸 너비: 기본 한 줄 전체, 반칸이면 절반 */
+.zone-cell { flex: 1 1 100%; min-width: 0; }
+.zone-cell.half { flex: 1 1 calc(50% - 6px); }
 .compartment-tag {
   font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px;
   color: var(--ink-soft); text-transform: uppercase;
@@ -301,8 +309,21 @@ body {
   background: var(--fill-deep);
 }
 .drawer.veg { background: linear-gradient(180deg, var(--card) 60%, var(--accent-soft)); }
-.drawer.frost {
-  background: repeating-linear-gradient(-45deg, var(--accent-soft), var(--accent-soft) 7px, var(--card) 7px, var(--card) 15px);
+/* 냉동실: 하늘색 사선 + 눈꽃송이 장식 */
+.compartment-tag.frost-tag { color: var(--frost); letter-spacing: 1px; }
+.zone-cell.frost {
+  position: relative;
+  background: repeating-linear-gradient(-45deg, var(--frost-soft), var(--frost-soft) 8px, var(--card) 8px, var(--card) 16px);
+}
+.zone-cell.frost .zname { color: var(--frost); }
+.zone-cell.frost .grip { color: var(--frost); }
+.zone-cell.frost .zhead, .zone-cell.frost .items { position: relative; z-index: 1; }
+.zone-cell.frost::before {   /* 눈꽃송이 장식 (내용 뒤 워터마크) */
+  content: "❆ ❅ ❄";
+  position: absolute; right: 12px; bottom: 8px; z-index: 0;
+  font-size: 13px; letter-spacing: 4px;
+  color: var(--frost); opacity: .5;
+  pointer-events: none;
 }
 .etc-wrap { margin-top: 12px; }
 .shelf.etc { border-left-color: var(--line); }
@@ -312,9 +333,9 @@ body {
   margin-bottom: 9px;
 }
 .zhead .zname { font-size: 14.5px; font-weight: 800; letter-spacing: -0.4px; }
-.zhead .cnt { color: var(--ink-soft); font-weight: 700; font-size: 12px; }
+.zhead .cnt { color: var(--ink-soft); font-weight: 700; font-size: 12px; margin-right: auto; }
 .zhead .alert {
-  margin-left: auto; font-size: 11px; font-weight: 800; color: #fff;
+  font-size: 11px; font-weight: 800; color: #fff;
   background: var(--urgent); border-radius: var(--r-pill); padding: 2px 10px;
 }
 .items { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -343,13 +364,23 @@ body {
   cursor: grab; letter-spacing: -2px;
 }
 .zdel {
-  margin-left: auto; flex: none;
+  flex: none;
   width: 22px; height: 22px; border: 0; border-radius: var(--r-pill);
   background: var(--fill-deep); color: var(--ink-soft);
   font-size: 15px; line-height: 1; font-weight: 700; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .zdel:hover { background: var(--urgent-soft); color: var(--urgent); }
+.zwidth {
+  flex: none; border: 0; border-radius: var(--r-pill);
+  background: var(--fill); color: var(--ink-soft);
+  font: inherit; font-size: 10.5px; font-weight: 800;
+  padding: 3px 9px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.zwidth:hover { background: var(--accent-soft); color: var(--accent-deep); }
+.zwidth:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 1px; }
+.zone-cell.frost .zwidth { color: var(--frost); }
 .item { cursor: grab; }
 .item:active { cursor: grabbing; }
 .item.dragging { opacity: .45; }
