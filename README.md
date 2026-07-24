@@ -6,7 +6,7 @@
 
 **▶ 라이브 데모: https://stkd9w57jm-oss.github.io/igeomeonjeo/**
 
-UI는 [Whole Foods Market UK](https://www.wholefoodsmarket.co.uk/)의 비주얼 스타일(딥 그린 `#004E36` · 화이트 · 웜 블랙 · 각진 모서리)을 따랐습니다.
+UI는 [토스(toss.im)](https://toss.im/)의 비주얼 스타일을 따랐습니다 — 토스 블루 `#3182F6`, 그레이 스케일, 큰 라운딩(12~24px), 보더 대신 소프트 섀도, 필 칩, 타이트한 자간의 굵은 타이포.
 
 ## 프로젝트 구성
 
