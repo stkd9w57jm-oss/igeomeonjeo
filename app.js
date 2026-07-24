@@ -221,14 +221,14 @@ function renderHome() {
 
   return '<header class="appbar"><h1>이거먼저</h1><span class="sub">' + (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + week + "요일</span></header>" +
     '<div class="h-section">오늘 먼저 챙길 재료 <small>' + top.length + "</small></div>" + cards +
-    (rest > 0 ? '<div class="quiet">나머지 ' + rest + '개 재료는 아직 여유 있어요 — <button data-goto="map">지도에서 보기</button></div>' : "");
+    (rest > 0 ? '<div class="quiet">나머지 ' + rest + '개 재료는 아직 여유 있어요 — <button data-goto="map">냉장고에서 보기</button></div>' : "");
 }
 
-/* ---------- 화면: 냉장고 지도 ---------- */
+/* ---------- 화면: 냉장고 ---------- */
 function renderMap() {
-  const zonesHtml = ZONES.map((z) => {
+  // 하나의 칸(선반/서랍)을 냉장고 부품처럼 렌더
+  const part = (z, cls) => {
     const items = state.items.filter((it) => it.zone === z);
-    if (z === "기타" && items.length === 0) return "";
     const nearCnt = items.filter((it) => { const s = dInfo(it).sev; return s === "urgent" || s === "over"; }).length;
     const chips = items.length
       ? items.map((it) => {
@@ -238,12 +238,29 @@ function renderMap() {
           return '<button class="item" data-sheet="' + it.id + '">' + esc(it.name) + dtxt + "</button>";
         }).join("")
       : '<span class="none">비어 있음</span>';
-    return '<section class="zone ' + (z === "냉동칸" ? "freezer" : "") + '" data-zone="' + esc(z) + '">' +
-      '<div class="zhead">' + esc(z) + ' <span class="cnt">· ' + items.length + "</span>" +
+    return '<section class="' + cls + '" data-zone="' + esc(z) + '" role="button" tabindex="0" aria-label="' + esc(z) + ' 상세 보기">' +
+      '<div class="zhead"><span class="zname">' + esc(z) + '</span>' +
+      '<span class="cnt">' + items.length + "개</span>" +
       (nearCnt ? '<span class="alert">' + nearCnt + " 임박</span>" : "") + "</div>" +
       '<div class="items">' + chips + "</div></section>";
-  }).join("");
-  return '<header class="appbar"><h1>냉장고 지도</h1><span class="sub">구획을 누르면 상세</span></header>' + zonesHtml;
+  };
+  const etc = state.items.filter((it) => it.zone === "기타");
+  return '<header class="appbar"><h1>냉장고</h1><span class="sub">칸을 누르면 상세</span></header>' +
+    '<div class="fridge">' +
+      '<div class="fridge-handle" aria-hidden="true"></div>' +
+      '<div class="fridge-main">' +
+        '<div class="compartment"><span class="compartment-tag">냉장실</span></div>' +
+        part("냉장 1칸", "shelf") +
+        part("냉장 2칸", "shelf") +
+        part("문칸", "shelf door") +
+        part("야채칸", "drawer veg") +
+      '</div>' +
+      '<div class="fridge-freezer">' +
+        '<div class="compartment"><span class="compartment-tag">냉동실</span></div>' +
+        part("냉동칸", "drawer frost") +
+      '</div>' +
+    '</div>' +
+    (etc.length ? '<div class="etc-wrap">' + part("기타", "shelf etc") + "</div>" : "");
 }
 
 /* ---------- 화면: 구획 상세 ---------- */
@@ -265,7 +282,7 @@ function renderZone() {
           '<div class="gauge"><i class="' + gcls + '" style="width:' + pct + '%"></i></div></div>';
       }).join("")
     : '<div class="empty">이 칸은 비어 있어요.</div>';
-  return '<header class="appbar"><button class="back" data-goto="map" aria-label="지도로 돌아가기">‹</button>' +
+  return '<header class="appbar"><button class="back" data-goto="map" aria-label="냉장고로 돌아가기">‹</button>' +
     "<h1>" + esc(z) + '</h1><span class="sub">' + items.length + "개" + (near ? " · 임박 " + near : "") + "</span></header>" +
     rows + '<div class="quiet">재료를 누르면 상태를 바꿀 수 있어요</div>';
 }
@@ -317,13 +334,37 @@ function renderReceipt() {
 }
 
 /* ---------- 화면: 알뜰 ---------- */
+/* 실제 배포 중인 마감임박·유통기한 임박 할인 서비스 (외부 링크) */
+const SAVE_SERVICES = [
+  { name: "라스트오더", desc: "편의점·음식점 마감할인 · 지도 기반", tag: "앱",
+    url: "https://apps.apple.com/kr/app/id1439949453" },
+  { name: "떠리몰", desc: "유통기한 임박·리퍼브 식품 쇼핑몰", tag: "웹·앱",
+    url: "https://thirtymall.com/" },
+  { name: "임박몰", desc: "유통기한 임박상품 전문 쇼핑몰", tag: "웹",
+    url: "https://www.imbak.co.kr/" },
+];
+
 function renderSave() {
+  const rules = [
+    "스폰서 상품이라고 임박 목록의 우선순위를 높이지 않습니다.",
+    "식품 안전 판단과 처리 권고는 상업적 제휴와 독립적입니다.",
+    "아래 서비스는 외부 링크이며, 제휴 여부를 명확히 표기합니다.",
+  ];
+  const links = SAVE_SERVICES.map((sv) =>
+    '<a class="save-link" href="' + sv.url + '" target="_blank" rel="noopener noreferrer">' +
+    '<div class="save-info"><span class="save-name">' + esc(sv.name) + '</span>' +
+    '<span class="save-desc">' + esc(sv.desc) + "</span></div>" +
+    '<span class="save-tag">' + esc(sv.tag) + "</span>" +
+    '<span class="save-go" aria-hidden="true">↗</span></a>').join("");
   return '<header class="appbar"><h1>알뜰 구매</h1><span class="sub">선택 기능</span></header>' +
-    '<div class="panel"><h2>준비 중이에요</h2>' +
-    "근처 매장의 마감 할인 상품을 여기서 볼 수 있도록 준비하고 있어요. 제휴가 확정된 데이터만 표시하고, 광고·제휴는 항상 명확히 표기합니다.<br><br>" +
-    "지금도 마감할인 상품을 등록할 때 <b>마감할인</b> 태그를 붙이면 홈에서 우선 관리돼요.</div>" +
-    '<div class="panel"><h2>신뢰 원칙</h2>' +
-    "스폰서 상품이라고 임박 목록의 우선순위를 높이지 않아요. 식품 안전 판단과 광고는 항상 분리됩니다.</div>";
+    '<section class="rules" aria-label="신뢰 원칙">' +
+    '<div class="rules-title">신뢰 원칙</div>' +
+    "<ol>" + rules.map((r) => "<li>" + esc(r) + "</li>").join("") + "</ol>" +
+    "</section>" +
+    '<div class="h-section">마감 임박 할인 <small>외부</small></div>' +
+    '<p class="save-lead">유통기한·마감 임박 상품을 실제로 파는 서비스예요. 사기 전 냉장고에 같은 재료가 있는지 확인하고, 사면 <b>마감할인</b> 태그로 등록해 먼저 처리하세요.</p>' +
+    links +
+    '<p class="save-foot">※ 위 서비스는 이거먼저와 제휴되지 않은 참고용 외부 링크입니다. 상호·상표는 각 사에 있습니다.</p>';
 }
 
 /* ---------- 화면: 설정 ---------- */
@@ -353,11 +394,17 @@ function renderSettings() {
 function bindView() {
   // 이동 버튼
   $view.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => go(b.dataset.goto)));
-  // 구획 카드 → 상세 (내부 아이템 버튼 클릭은 제외)
-  $view.querySelectorAll(".zone").forEach((zEl) => {
+  // 냉장고 칸(선반·서랍) → 상세 (내부 아이템 버튼 클릭은 제외)
+  $view.querySelectorAll("[data-zone]").forEach((zEl) => {
     zEl.addEventListener("click", (e) => {
       if (e.target.closest("[data-sheet]")) return;
       go("zone", zEl.dataset.zone);
+    });
+    zEl.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.target.closest("[data-sheet]")) {
+        e.preventDefault();
+        go("zone", zEl.dataset.zone);
+      }
     });
   });
   // 시트 열기
