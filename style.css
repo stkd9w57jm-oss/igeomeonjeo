@@ -329,6 +329,7 @@ details.expiry .inner { margin-top: 8px; }
   background: rgba(20, 24, 18, .5);
   display: flex; align-items: flex-end; justify-content: center;
 }
+#overlay[hidden] { display: none; }
 #sheet {
   width: 100%; max-width: 440px;
   background: var(--card);
