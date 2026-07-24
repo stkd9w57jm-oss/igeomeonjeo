@@ -331,6 +331,48 @@ body {
 .item .d.u { color: var(--urgent-text); }
 .item .d.w { color: var(--warn); }
 .shelf .none, .drawer .none { font-size: 12.5px; color: var(--ink-soft); }
+.drawer.fruit { background: linear-gradient(180deg, var(--card) 55%, var(--point-soft)); }
+
+/* 드래그 편집: 그립·삭제·추가·피드백 */
+.zone-cell { cursor: grab; }
+.zone-cell:active { cursor: grabbing; }
+.zone-cell.dragging { opacity: .45; }
+.zone-cell.drop-target { outline: 2.5px dashed var(--accent-deep); outline-offset: 1px; }
+.zhead .grip {
+  color: var(--ink-soft); opacity: .5; font-size: 13px; margin-right: 1px;
+  cursor: grab; letter-spacing: -2px;
+}
+.zdel {
+  margin-left: auto; flex: none;
+  width: 22px; height: 22px; border: 0; border-radius: var(--r-pill);
+  background: var(--fill-deep); color: var(--ink-soft);
+  font-size: 15px; line-height: 1; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.zdel:hover { background: var(--urgent-soft); color: var(--urgent); }
+.item { cursor: grab; }
+.item:active { cursor: grabbing; }
+.item.dragging { opacity: .45; }
+
+.add-zone {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 4px; padding: 2px;
+}
+.add-zone-lead {
+  font-size: 12px; font-weight: 800; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.add-zone-opts { display: flex; flex-wrap: wrap; gap: 7px; }
+.add-zone-opt {
+  border: 1.5px dashed var(--accent); background: var(--accent-soft);
+  color: var(--accent-deep); font: inherit; font-size: 12.5px; font-weight: 700;
+  border-radius: var(--r-pill); padding: 6px 12px; cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+.add-zone-opt:hover { background: var(--card); }
+.add-zone-opt:active { transform: scale(.96); }
+.add-zone-opt:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 1px; }
+.zone-cell.etc { cursor: default; }
 
 /* ---------- 알뜰 구매: 신뢰 원칙(규칙) + 서비스 링크 ---------- */
 .rules {

@@ -2,8 +2,29 @@
 "use strict";
 
 /* ---------- 상수 ---------- */
-const ZONES = ["냉동칸", "냉장 1칸", "냉장 2칸", "문칸", "야채칸", "기타"];
+/* 냉장고 칸 기본 배치. section: fridge(냉장실)·freezer(냉동실), kind: shelf·door·drawer */
+const DEFAULT_ZONES = [
+  { name: "냉장 1칸", section: "fridge", kind: "shelf" },
+  { name: "냉장 2칸", section: "fridge", kind: "shelf" },
+  { name: "문칸", section: "fridge", kind: "door" },
+  { name: "야채칸", section: "fridge", kind: "drawer" },
+  { name: "냉동칸", section: "freezer", kind: "drawer" },
+];
+/* 추가 가능한 칸 종류 */
+const ADDABLE = [
+  { key: "냉장", label: "냉장칸", base: "냉장", kind: "shelf", section: "fridge" },
+  { key: "문칸", label: "문칸", base: "문칸", kind: "door", section: "fridge" },
+  { key: "야채", label: "야채칸", base: "야채칸", kind: "drawer", section: "fridge" },
+  { key: "과일", label: "과일칸", base: "과일칸", kind: "drawer", section: "fridge" },
+  { key: "냉동", label: "냉동칸", base: "냉동칸", kind: "drawer", section: "freezer" },
+];
 const STORAGE_KEY = "igeomeonjeo-v2";
+
+function fridgeZones() { return state.zones.filter((z) => z.section === "fridge"); }
+function freezerZones() { return state.zones.filter((z) => z.section === "freezer"); }
+function zoneNames() { return state.zones.map((z) => z.name); }
+function addFormZones() { return [...zoneNames(), "기타"]; }
+function cloneDefaultZones() { return DEFAULT_ZONES.map((z) => ({ ...z })); }
 const FROZEN_DAYS = 30; // 냉동 이동 시 부여하는 권장 기간
 
 /* 품목별 권장 냉장 보관기간 기본값(일).
@@ -99,9 +120,13 @@ let receiptPreview = null; // 영수증 파싱 미리보기
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.zones) || !parsed.zones.length) parsed.zones = cloneDefaultZones(); // 구버전 상태 마이그레이션
+      return parsed;
+    }
   } catch (e) { /* 손상된 저장값은 무시하고 새로 시작 */ }
-  return { items: seedItems(), history: [], seeded: true };
+  return { items: seedItems(), zones: cloneDefaultZones(), history: [], seeded: true };
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
@@ -248,42 +273,160 @@ function renderHome() {
 }
 
 /* ---------- 화면: 냉장고 ---------- */
+function zoneClasses(z) {
+  // 시각 스타일 클래스 (kind + 특수)
+  let c = z.kind; // shelf | door | drawer
+  if (z.name === "야채칸" || /야채/.test(z.name)) c += " veg";
+  if (/과일/.test(z.name)) c += " fruit";
+  if (z.section === "freezer") c += " frost";
+  return c;
+}
 function renderMap() {
-  // 하나의 칸(선반/서랍)을 냉장고 부품처럼 렌더
-  const part = (z, cls) => {
-    const items = state.items.filter((it) => it.zone === z);
+  const itemChips = (items) => items.length
+    ? items.map((it) => {
+        const di = dInfo(it);
+        const dcls = di.sev === "urgent" || di.sev === "over" ? "u" : di.sev === "warn" ? "w" : "";
+        const dtxt = di.sev === "ok" && remaining(it) > 7 ? "" : '<span class="d ' + dcls + '">' + di.label + "</span>";
+        return '<button class="item" draggable="true" data-item="' + it.id + '" data-sheet="' + it.id + '">' + esc(it.name) + dtxt + "</button>";
+      }).join("")
+    : '<span class="none">비어 있음</span>';
+  // 냉장고 칸(선반/서랍) — 끌어서 정렬, 재료 드롭 대상
+  const part = (z) => {
+    const items = state.items.filter((it) => it.zone === z.name);
     const nearCnt = items.filter((it) => { const s = dInfo(it).sev; return s === "urgent" || s === "over"; }).length;
-    const chips = items.length
-      ? items.map((it) => {
-          const di = dInfo(it);
-          const dcls = di.sev === "urgent" || di.sev === "over" ? "u" : di.sev === "warn" ? "w" : "";
-          const dtxt = di.sev === "ok" && remaining(it) > 7 ? "" : '<span class="d ' + dcls + '">' + di.label + "</span>";
-          return '<button class="item" data-sheet="' + it.id + '">' + esc(it.name) + dtxt + "</button>";
-        }).join("")
-      : '<span class="none">비어 있음</span>';
-    return '<section class="' + cls + '" data-zone="' + esc(z) + '" role="button" tabindex="0" aria-label="' + esc(z) + ' 상세 보기">' +
-      '<div class="zhead"><span class="zname">' + esc(z) + '</span>' +
+    const del = items.length === 0
+      ? '<button class="zdel" data-del="' + esc(z.name) + '" aria-label="' + esc(z.name) + ' 삭제" title="빈 칸 삭제">×</button>' : "";
+    return '<section class="zone-cell ' + zoneClasses(z) + '" draggable="true" data-zone="' + esc(z.name) + '" role="button" tabindex="0" aria-label="' + esc(z.name) + ' 상세 보기">' +
+      '<div class="zhead"><span class="grip" aria-hidden="true">⠿</span><span class="zname">' + esc(z.name) + "</span>" +
       '<span class="cnt">' + items.length + "개</span>" +
-      (nearCnt ? '<span class="alert">' + nearCnt + " 임박</span>" : "") + "</div>" +
-      '<div class="items">' + chips + "</div></section>";
+      (nearCnt ? '<span class="alert">' + nearCnt + " 임박</span>" : "") + del + "</div>" +
+      '<div class="items">' + itemChips(items) + "</div></section>";
   };
-  const etc = state.items.filter((it) => it.zone === "기타");
-  return '<header class="appbar"><h1>냉장고</h1><span class="sub">칸을 누르면 상세</span></header>' +
+  const fz = fridgeZones(), frz = freezerZones();
+  const etcItems = state.items.filter((it) => !zoneNames().includes(it.zone));
+  const picker = ADDABLE.map((a) => '<button class="add-zone-opt" data-add="' + a.key + '">＋ ' + esc(a.label) + "</button>").join("");
+  const etc = etcItems.length
+    ? '<div class="etc-wrap"><section class="zone-cell shelf etc" data-zone="기타" aria-label="기타">' +
+        '<div class="zhead"><span class="zname">기타</span><span class="cnt">' + etcItems.length + "개</span></div>" +
+        '<div class="items">' + itemChips(etcItems) + "</div></section></div>"
+    : "";
+  return '<header class="appbar"><h1>냉장고</h1><span class="sub">끌어서 정렬 · 재료 이동</span></header>' +
     '<div class="fridge">' +
       '<div class="fridge-handle" aria-hidden="true"></div>' +
-      '<div class="fridge-main">' +
+      '<div class="fridge-main" data-section="fridge">' +
         '<div class="compartment"><span class="compartment-tag">냉장실</span></div>' +
-        part("냉장 1칸", "shelf") +
-        part("냉장 2칸", "shelf") +
-        part("문칸", "shelf door") +
-        part("야채칸", "drawer veg") +
-      '</div>' +
-      '<div class="fridge-freezer">' +
-        '<div class="compartment"><span class="compartment-tag">냉동실</span></div>' +
-        part("냉동칸", "drawer frost") +
-      '</div>' +
-    '</div>' +
-    (etc.length ? '<div class="etc-wrap">' + part("기타", "shelf etc") + "</div>" : "");
+        (fz.length ? fz.map(part).join("") : '<div class="none" style="padding:6px 2px">칸이 없어요. 아래에서 추가하세요.</div>') +
+      "</div>" +
+      (frz.length ? '<div class="fridge-freezer" data-section="freezer"><div class="compartment"><span class="compartment-tag">냉동실</span></div>' + frz.map(part).join("") + "</div>" : "") +
+    "</div>" +
+    '<div class="add-zone"><span class="add-zone-lead">칸 추가</span><div class="add-zone-opts">' + picker + "</div></div>" +
+    etc;
+}
+
+/* 냉장고 편집: 칸 정렬 · 재료 이동 · 칸 추가/삭제 (HTML5 드래그) */
+let dragCtx = null;
+function bindFridge() {
+  const clearDrop = () => $view.querySelectorAll(".drop-target").forEach((x) => x.classList.remove("drop-target"));
+  // 재료 칩 드래그 (칸 이동)
+  $view.querySelectorAll(".item[data-item]").forEach((el) => {
+    el.addEventListener("dragstart", (e) => {
+      e.stopPropagation(); // 부모 칸의 정렬 드래그와 분리
+      dragCtx = { type: "item", id: el.dataset.item };
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", el.dataset.item);
+      el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", () => { el.classList.remove("dragging"); clearDrop(); dragCtx = null; });
+  });
+  // 칸 드래그 (정렬)
+  $view.querySelectorAll('.zone-cell[draggable="true"]').forEach((el) => {
+    el.addEventListener("dragstart", (e) => {
+      dragCtx = { type: "zone", name: el.dataset.zone };
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", el.dataset.zone);
+      el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", () => { el.classList.remove("dragging"); clearDrop(); dragCtx = null; });
+  });
+  // 드롭 대상: 모든 칸(기타 포함)
+  $view.querySelectorAll(".zone-cell").forEach((el) => {
+    el.addEventListener("dragover", (e) => {
+      if (!dragCtx) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      el.classList.add("drop-target");
+    });
+    el.addEventListener("dragleave", () => el.classList.remove("drop-target"));
+    el.addEventListener("drop", (e) => {
+      if (!dragCtx) return;
+      e.preventDefault(); e.stopPropagation();
+      el.classList.remove("drop-target");
+      const target = el.dataset.zone;
+      if (dragCtx.type === "item") moveItemToZone(dragCtx.id, target);
+      else if (dragCtx.type === "zone") reorderZone(dragCtx.name, target);
+      dragCtx = null;
+    });
+  });
+  // 칸 추가 / 삭제
+  $view.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => addZone(b.dataset.add)));
+  $view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); deleteZone(b.dataset.del); }));
+}
+
+function moveItemToZone(id, zoneName) {
+  const it = state.items.find((x) => x.id === id);
+  if (!it || it.zone === zoneName) return;
+  it.zone = zoneName;
+  const tz = state.zones.find((z) => z.name === zoneName);
+  it.frozen = !!(tz && tz.section === "freezer"); // 냉동실로 옮기면 냉동 표시
+  save();
+  render();
+  toast('"' + it.name + '" → ' + zoneName);
+}
+
+function reorderZone(name, targetName) {
+  if (name === targetName) return;
+  const from = state.zones.findIndex((z) => z.name === name);
+  const to = state.zones.findIndex((z) => z.name === targetName);
+  if (from < 0 || to < 0) return;
+  if (state.zones[from].section !== state.zones[to].section) { toast("같은 칸(냉장실/냉동실)끼리만 정렬돼요"); return; }
+  const [moved] = state.zones.splice(from, 1);
+  const at = state.zones.findIndex((z) => z.name === targetName);
+  state.zones.splice(at, 0, moved); // 대상 앞에 삽입
+  save();
+  render();
+  toast('"' + name + '" 위치를 옮겼어요');
+}
+
+function uniqueZoneName(base) {
+  if (base === "냉장") {
+    let n = 1;
+    while (zoneNames().includes("냉장 " + n + "칸")) n++;
+    return "냉장 " + n + "칸";
+  }
+  if (!zoneNames().includes(base)) return base;
+  let n = 2;
+  while (zoneNames().includes(base + " " + n)) n++;
+  return base + " " + n;
+}
+
+function addZone(key) {
+  const t = ADDABLE.find((a) => a.key === key);
+  if (!t) return;
+  const z = { name: uniqueZoneName(t.base), section: t.section, kind: t.kind };
+  let lastIdx = -1;
+  state.zones.forEach((zz, i) => { if (zz.section === t.section) lastIdx = i; });
+  state.zones.splice(lastIdx + 1, 0, z); // 해당 실의 맨 끝에 추가
+  save();
+  render();
+  toast('"' + z.name + '" 칸을 추가했어요');
+}
+
+function deleteZone(name) {
+  if (state.items.some((it) => it.zone === name)) { toast("먼저 재료를 다른 칸으로 옮겨 주세요"); return; }
+  state.zones = state.zones.filter((z) => z.name !== name);
+  save();
+  render();
+  toast('"' + name + '" 칸을 지웠어요');
 }
 
 /* ---------- 화면: 구획 상세 ---------- */
@@ -318,7 +461,7 @@ function renderAdd() {
     '<input type="text" id="f-name" autocomplete="off" placeholder="예: 애호박" required>' +
     '<div id="f-suggest"></div></div>' +
     '<div class="field"><label>어느 칸에 넣었나요?</label><div class="seg" id="f-zone">' +
-    ZONES.map((z, i) => '<button type="button" class="s' + (i === 4 ? " on" : "") + '" data-z="' + esc(z) + '">' + esc(z) + "</button>").join("") +
+    addFormZones().map((z) => '<button type="button" class="s' + (z === "야채칸" ? " on" : "") + '" data-z="' + esc(z) + '">' + esc(z) + "</button>").join("") +
     "</div></div>" +
     '<div class="field"><label for="f-bought">구매일 <span class="opt">· 기본값은 오늘</span></label>' +
     '<input type="date" id="f-bought" value="' + fmt(today()) + '"></div>' +
@@ -344,7 +487,7 @@ function renderReceipt() {
         '<span class="sub">' + esc(p.note) + "</span></label>").join("") +
       "</div></div>" +
       '<div class="field"><label for="r-zone">넣을 칸 한 번에 지정</label><select id="r-zone">' +
-      ZONES.map((z, i) => '<option' + (i === 2 ? " selected" : "") + ">" + esc(z) + "</option>").join("") + "</select></div>" +
+      addFormZones().map((z) => '<option' + (z === "냉장 2칸" ? " selected" : "") + ">" + esc(z) + "</option>").join("") + "</select></div>" +
       '<button class="btn primary big" style="width:100%" id="r-submit">체크한 재료 등록</button>';
   }
   return '<header class="appbar"><button class="back" data-goto="add" aria-label="등록으로 돌아가기">‹</button>' +
@@ -417,10 +560,10 @@ function renderSettings() {
 function bindView() {
   // 이동 버튼
   $view.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => go(b.dataset.goto)));
-  // 냉장고 칸(선반·서랍) → 상세 (내부 아이템 버튼 클릭은 제외)
+  // 냉장고 칸(선반·서랍) → 상세 (내부 아이템/삭제 버튼 클릭은 제외)
   $view.querySelectorAll("[data-zone]").forEach((zEl) => {
     zEl.addEventListener("click", (e) => {
-      if (e.target.closest("[data-sheet]")) return;
+      if (e.target.closest("[data-sheet]") || e.target.closest("[data-del]")) return;
       go("zone", zEl.dataset.zone);
     });
     zEl.addEventListener("keydown", (e) => {
@@ -430,6 +573,7 @@ function bindView() {
       }
     });
   });
+  if (currentView === "map") bindFridge();
   // 시트 열기
   $view.querySelectorAll("[data-sheet]").forEach((el) => {
     const open = (e) => { e.stopPropagation(); openSheet(el.dataset.sheet); };
@@ -471,7 +615,8 @@ function bindAddForm(form) {
   nameEl.addEventListener("input", () => {
     const v = nameEl.value.trim();
     const g = guessFood(nameEl.value);
-    const gz = guessZone(nameEl.value);
+    let gz = guessZone(nameEl.value);
+    if (gz && !zoneNames().includes(gz)) gz = null; // 삭제된 칸은 추천하지 않음
     if (v && gz && !zoneTouched) selectZone(gz); // 칸 자동 추천
     const zoneNote = (v && gz && !zoneTouched) ? " · " + esc(gz) + " 추천" : "";
     sugEl.innerHTML = v
